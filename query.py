@@ -26,12 +26,13 @@ token = get_access_token(client_id, client_secret)
 
 
 wrapper = IGDBWrapper(client_id, token)
-
-def query(endpoint, fields):
+# this could be modified to append limit and offset to fields so we don't have to keep spamming it
+def query(endpoint, fields, limit, offset):
+    fields = f'{fields} limit {limit}; offset {offset};'
     return wrapper.api_request(endpoint, fields)
 
-def query_to_df(endpoint, fields):
-    response = query(endpoint, fields)
+def query_to_df(endpoint, fields, limit = 100, offset = 0):
+    response = query(endpoint, fields, limit, offset)
     data = json.loads(response.decode("utf-8"))
     df = pd.DataFrame(data)
     return df
