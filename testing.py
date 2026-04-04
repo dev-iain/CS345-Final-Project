@@ -1,41 +1,26 @@
-from igdb.wrapper import IGDBWrapper
-import json 
-import requests
 import pandas as pd
-import os
+import query
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(BASE_DIR, "testing.config.json")
+# gets top 500 most reviewed games on steam
+player_ct = query.query_to_df('popularity_primitives', 'fields game_id, popularity_type, value;'
+                              'where popularity_type = 8;'
+                              'sort value desc;'
+                              'limit 500;'
+                              'offset 0;')
+# build id_list lookup helper
+id_list = query.df_to_feature(player_ct, "game_id")
+#match id -> name
+name_df = query.query_to_df(
+    'games',
+    f'fields id, name; where id = ({id_list}); limit 500;'
+)
 
-with open(config_path) as config:
-    config = json.load(config)
-client_id = config["igdb"]["client_id"]
-client_secret = config["igdb"]["client_secret"]
+merged_df = player_ct.merge(
+    name_df,
+    left_on="game_id",
+    right_on="id"
+)
 
-def get_access_token(client_id, client_secret):
-    url = f"https://id.twitch.tv/oauth2/token"
-    params = {
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "grant_type": "client_credentials"
-    }
-    response = requests.post(url, params=params)
-    return response.json()["access_token"]
+merged_df = merged_df.sort_values("value", ascending=False)
 
-token = get_access_token(client_id, client_secret)
-
-
-wrapper = IGDBWrapper(client_id, token)
-
-def query(endpoint, fields):
-    return wrapper.api_request(endpoint, fields)
-
-response_1 = query('games', 'fields name, aggregated_rating; where aggregated_rating != null; limit 100; offset 0;')
-json_data = json.loads(response_1.decode("utf-8"))
-game_df = pd.DataFrame(json_data)
-print(game_df.to_string())
-
-response_2 = query('genres', 'fields name; limit 10;')
-json_data = json.loads(response_2.decode("utf-8"))
-genre_df = pd.DataFrame(json_data)
-print(genre_df.to_string())
+print(merged_df[["name", "value"]].to_string())
