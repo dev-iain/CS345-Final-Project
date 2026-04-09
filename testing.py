@@ -5,7 +5,10 @@ import pandas as pd
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(BASE_DIR, "testing.config.json")
+config_path = os.path.join(BASE_DIR, "config.json")     # I added a fallback so it supports both configs without changing anything
+
+if not os.path.exists(config_path):
+    config_path = os.path.join(BASE_DIR, "testing.config.json")
 
 with open(config_path) as config:
     config = json.load(config)
