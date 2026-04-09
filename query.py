@@ -29,16 +29,18 @@ token = get_access_token(client_id, client_secret)
 
 
 wrapper = IGDBWrapper(client_id, token)
-
-def query(endpoint, fields):
+# this could be modified to append limit and offset to fields so we don't have to keep spamming it
+def query(endpoint, fields, limit, offset):
+    fields = f'{fields} limit {limit}; offset {offset};'
     return wrapper.api_request(endpoint, fields)
 
-response_1 = query('games', 'fields name, aggregated_rating; where aggregated_rating != null; limit 100; offset 0;')
-json_data = json.loads(response_1.decode("utf-8"))
-game_df = pd.DataFrame(json_data)
-print(game_df.to_string())
+def query_to_df(endpoint, fields, limit = 100, offset = 0):
+    response = query(endpoint, fields, limit, offset)
+    data = json.loads(response.decode("utf-8"))
+    df = pd.DataFrame(data)
+    return df
 
-response_2 = query('genres', 'fields name; limit 10;')
-json_data = json.loads(response_2.decode("utf-8"))
-genre_df = pd.DataFrame(json_data)
-print(genre_df.to_string())
+def df_to_feature(dataframe, feature):
+    templist = dataframe[feature].to_list()
+    feature = ",".join(map(str, templist))
+    return feature
