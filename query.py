@@ -38,6 +38,7 @@ def query_to_df(endpoint, fields, limit = 100, offset = 0):
     return df
 
 def df_to_feature(dataframe, feature):
+    #obviously this bad for sql injection
     templist = dataframe[feature].to_list()
     feature = ",".join(map(str, templist))
     return feature

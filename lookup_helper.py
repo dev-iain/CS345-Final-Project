@@ -4,7 +4,7 @@
 
 ## sometimes, it makes more sense to not put *everything* in our df, only what is absolutely necessary; the rest can be queried
 ## for example, we dont need a dataframe of every single game engine, just the ones that are used in our dataset
-import testing as ts
+import cs345.popscore as ts
 
 
 #platform type; 1 = console, 6 = computer
