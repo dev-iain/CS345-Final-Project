@@ -4,3 +4,5 @@ config.json
 /venv
 /__pycache__
 __pycache__
+requirements.txt
+games_raw.csv

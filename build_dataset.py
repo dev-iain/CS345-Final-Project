@@ -1,37 +1,64 @@
 import pandas as pd
-from query import query_to_df
+from query import query_to_df, df_to_feature
 
-print("Building dataset...")
 
-all_dfs = []
 
-for offset in range(0, 2000, 500):
-    print(f"Fetching offset {offset}")
+def build(max, endpoint, query, limit, offset):
+    print("Building dataset...")
+    all_dfs = []
     
-    df = query_to_df(
-        "games",
-        """
-        fields id, name,
-               aggregated_rating, aggregated_rating_count,
-               follows, hypes,
-               genres, platforms,
-               first_release_date;
-        where platforms = [6] & aggregated_rating != null;
-        """,
-        limit = 500,
-        offset = offset
-    )
+    for offset in range(0, max, limit):
+        print(f"Fetching offset {offset}")
+        
+        df = query_to_df(
+            endpoint,
+            query,
+            limit,
+            offset
+        )
+        if df.empty:
+            print("Completed")
+            break
+        all_dfs.append(df)
+        
+    games_df = pd.concat(all_dfs, ignore_index = True)
     
-    if df.empty:
-        print("Completed")
-        break
+    print(f"Total rows collected: {len(games_df)}")
     
-    all_dfs.append(df)
+    return games_df
     
-games_df = pd.concat(all_dfs, ignore_index = True)
+def save(df, filename, **kwargs):
+    df.to_csv(f'{filename}.csv', **kwargs)
+    print(f"Saved to {filename}.csv")
 
-print(f"Total rows collected: {len(games_df)}")
 
-games_df.to_csv("games_raw.csv", index = False)
+most_reviewed_df = build(5000, 
+                         'popularity_primitives', 
+                         """
+                        fields game_id, value;
+                        where popularity_type = 8;
+                        sort value desc;
+                         """,
+                        500,
+                        0
+                    )
 
-print("Saved to games_raw.csv")
+save(most_reviewed_df, "datasets/most_reviewed", index=False)
+review_lookup = df_to_feature(most_reviewed_df, "game_id")
+
+save(build(
+            5000,             
+           "games",
+            f"""
+            fields id, name,
+                aggregated_rating, aggregated_rating_count,
+                follows, hypes,
+                genres, platforms,
+                first_release_date;
+            where id = ({review_lookup}) & platforms = [6] & aggregated_rating != null;
+            """,
+            500, 
+            0
+           ), 
+     "datasets/games_raw", index=False)
+                        
