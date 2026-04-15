@@ -35,3 +35,4 @@ game_df = game_df.join(neg_rvw.set_index("game_id")[["negative_reviews"]])
 game_df["normalized"] = (game_df["positive_reviews"] - game_df["negative_reviews"]) / np.log1p(game_df["review_count"])
 print(game_df.sort_values(by="normalized", ascending=False))
 
+
