@@ -22,9 +22,10 @@ rmse = np.sqrt(mean_squared_error(test_y, pred_y))
 
 r2 = r2_score(test_y, pred_y)
 
+r = np.sqrt(r2)
 print("RMSE:", rmse)
 print("R2:", r2)
-
+print("R:", r)
 importances = rand_forest.feature_importances_
 feature_names = X.columns
 

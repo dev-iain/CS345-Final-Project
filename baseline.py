@@ -10,5 +10,5 @@ df = df[~nan_rows]
 X = df.iloc[:, :-1]
 print(X)
 
-y = np.array((df.iloc[:, -1] > 0), dtype=np.int64)
+y = np.array((df.iloc[:, -1] > 0), dtype=np.float64)
 print(y)
