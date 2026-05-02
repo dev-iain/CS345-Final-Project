@@ -8,8 +8,8 @@ df = pd.read_csv("datasets/games_raw.csv")
 df = df.dropna()
 
 
-X = df.drop(columns = ["aggregated_rating", "id"])
-y = df["aggregated_rating"]
+X = df.drop(columns = ["rating", "id"])
+y = df["rating"]
 
 train_X, test_X, train_y, test_y = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
