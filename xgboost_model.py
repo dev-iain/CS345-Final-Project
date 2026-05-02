@@ -17,7 +17,7 @@ dtest = xgb.DMatrix(X_test, label=y_test)
 
 #use approx methods, not exact; max depth can be configured
 params = {
-    'max_depth': 2, 
+    'max_depth': 1, 
     'tree_method': 'approx', 
     'objective': 'reg:squarederror',
     'eval_metric': 'rmse',

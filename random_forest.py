@@ -3,13 +3,14 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
 df = pd.read_csv("datasets/games_raw.csv")
 df = df.dropna()
 
 
-X = df.drop(columns = ["aggregated_rating", "id"])
-y = df["aggregated_rating"]
+X = df.drop(columns = ["rating", "id", "normalized"])
+y = df["rating"]
 
 train_X, test_X, train_y, test_y = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
