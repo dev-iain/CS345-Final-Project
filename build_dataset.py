@@ -2,7 +2,7 @@ import pandas as pd
 from query import query_to_df, df_to_feature
 from pathlib import Path
 import os
-
+import numpy as np
 def build(max, endpoint, query, limit, offset):
     print("Building dataset...")
     all_dfs = []
@@ -59,6 +59,7 @@ def buildAll(limit):
                         500,
                         0
                     )
+    most_reviewed_df = most_reviewed_df.rename(columns={"value": "review_count"})
     save(most_reviewed_df, "datasets/most_reviewed", index=False)
     
     review_lookup = df_to_feature(most_reviewed_df, "game_id")
@@ -103,8 +104,10 @@ def buildAll(limit):
     games_raw_df = games_raw_df.set_index("id")
     games_raw_df = games_raw_df.join(pos_popscore.set_index("game_id")[["positive_reviews"]])
     games_raw_df = games_raw_df.join(neg_popscore.set_index("game_id")[["negative_reviews"]])
+    games_raw_df = games_raw_df.join(most_reviewed_df.set_index("game_id")[["review_count"]])
+    games_raw_df["normalized"] = (games_raw_df["positive_reviews"] - games_raw_df["negative_reviews"]) / np.log1p(games_raw_df["review_count"])
     print(games_raw_df.to_string())
     save(games_raw_df, "datasets/games_raw")
 
-updateAll(500)
+updateAll(3000)
 

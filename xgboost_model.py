@@ -7,8 +7,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 df = pd.read_csv("datasets/games_raw.csv")
 df = df.dropna()
 
-X = df.drop(columns = ["aggregated_rating", "id"])
-y = df["aggregated_rating"]
+X = df.drop(columns = ["rating", "id"])
+y = df["rating"]
 
 train_X, test_X, train_y, test_y = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
@@ -28,7 +28,7 @@ print("\nRunning GridSearch")
 
 param_grid = {
     "n_estimators": [50, 100],
-    "max_depth": [3, 5],
+    "max_depth": [1, 2, 3, 4, 5],
     "learning_rate": [0.1, 0.2],
     "subsample": [0.8, 1.0]
 }
@@ -54,10 +54,10 @@ pred_y = best_model.predict(test_X)
 rmse = np.sqrt(mean_squared_error(test_y, pred_y))
 r2 = r2_score(test_y, pred_y)
 
-print("\nTuned RMSE: ", rmse)
-print("Tunded R2: ", r2)
+print("\nTuned RMSE:", rmse)
+print("Tuned R2:", r2)
 
-print("\nFeature Importance: ")
+print("\nFeature Importance:")
 importances = best_model.feature_importances_
 
 feat_df = pd.DataFrame({
