@@ -8,9 +8,9 @@ df = pd.read_csv("datasets/games_raw.csv")
 df = df.dropna()
 
 
-X = df.drop(columns = ["rating", "id"])
+drop_cols = ["rating", "id", "positive_reviews", "negative_reviews", "review_count", "normalized"]
+X = df.drop(columns=[c for c in drop_cols if c in df.columns])
 y = df["rating"]
-
 train_X, test_X, train_y, test_y = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
 rand_forest = RandomForestRegressor(n_estimators = 100, random_state = 42)

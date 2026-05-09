@@ -7,9 +7,9 @@ from sklearn.metrics import mean_squared_error, r2_score
 df = pd.read_csv("datasets/games_raw.csv")
 df = df.dropna()
 
-X = df.drop(columns = ["rating", "id"])
+drop_cols = ["rating", "id", "positive_reviews", "negative_reviews", "review_count", "normalized"]
+X = df.drop(columns=[c for c in drop_cols if c in df.columns])
 y = df["rating"]
-
 train_X, test_X, train_y, test_y = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
 print("Running basic XGBoost")
@@ -27,9 +27,9 @@ print("Basic R2: ", r2)
 print("\nRunning GridSearch")
 
 param_grid = {
-    "n_estimators": [50, 100],
+    "n_estimators": [50, 100, 200, 500],
     "max_depth": [1, 2, 3, 4, 5],
-    "learning_rate": [0.1, 0.2],
+    "learning_rate": [0.01, 0.02, 0.1, 0.2],
     "subsample": [0.8, 1.0]
 }
 

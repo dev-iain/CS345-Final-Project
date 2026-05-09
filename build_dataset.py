@@ -3,7 +3,17 @@ from query import query_to_df, df_to_feature
 from pathlib import Path
 import os
 import numpy as np
-def build(max, endpoint, query, limit, offset):
+import time
+from sklearn.preprocessing import MultiLabelBinarizer
+
+def multihot(df, col, prefix):
+      mlb = MultiLabelBinarizer()
+      safe = df[col].apply(lambda x: x if isinstance(x, list) else [])
+      encoded = mlb.fit_transform(safe)
+      encoded_df = pd.DataFrame(encoded, columns=[f'{prefix}_{c}' for c in mlb.classes_], index=df.index)
+      return df.drop(columns=[col]).join(encoded_df)
+
+def build(max, endpoint, query, limit):
     print("Building dataset...")
     all_dfs = []
     
@@ -20,6 +30,8 @@ def build(max, endpoint, query, limit, offset):
             print("Completed")
             break
         all_dfs.append(df)
+        #have to time.sleep so errors dont occur when building due to rate limit
+        time.sleep(0.3)
         
     games_df = pd.concat(all_dfs, ignore_index = True)
     
@@ -56,8 +68,7 @@ def buildAll(limit):
                         where popularity_type = 8;
                         sort value desc;
                          """,
-                        500,
-                        0
+                        500
                     )
     most_reviewed_df = most_reviewed_df.rename(columns={"value": "review_count"})
     save(most_reviewed_df, "datasets/most_reviewed", index=False)
@@ -71,8 +82,7 @@ def buildAll(limit):
         fields game_id, value;
         where game_id = ({review_lookup}) & popularity_type = 6;
         """,
-        500,
-        0
+        500
     )
     pos_popscore = pos_popscore.rename(columns = {"value": "positive_reviews"})
 
@@ -83,8 +93,7 @@ def buildAll(limit):
         fields game_id, value;
         where game_id = ({review_lookup}) & popularity_type = 7;
         """,
-        500,
-        0
+        500
     )
     neg_popscore = neg_popscore.rename(columns={"value": "negative_reviews"})
 
@@ -95,18 +104,23 @@ def buildAll(limit):
             fields id,
                 aggregated_rating, aggregated_rating_count, 
                 rating, rating_count,
-                follows, first_release_date;
+                follows, first_release_date,
+                genres, themes, game_type,
+                game_modes, player_perspectives;
             where id = ({review_lookup}) & platforms = [6] & aggregated_rating != null;
             """,
-            500, 
-            0
+            500
            )
+
     games_raw_df = games_raw_df.set_index("id")
     games_raw_df = games_raw_df.join(pos_popscore.set_index("game_id")[["positive_reviews"]])
     games_raw_df = games_raw_df.join(neg_popscore.set_index("game_id")[["negative_reviews"]])
     games_raw_df = games_raw_df.join(most_reviewed_df.set_index("game_id")[["review_count"]])
     games_raw_df["normalized"] = (games_raw_df["positive_reviews"] - games_raw_df["negative_reviews"]) / np.log1p(games_raw_df["review_count"])
-    print(games_raw_df.to_string())
+    games_raw_df = multihot(games_raw_df, 'genres', 'genre')
+    games_raw_df = multihot(games_raw_df, 'themes', 'theme')
+    games_raw_df = multihot(games_raw_df, 'game_modes', 'game_mode')
+    games_raw_df = multihot(games_raw_df, 'player_perspectives', 'perspective')
     save(games_raw_df, "datasets/games_raw")
 
 updateAll(3000)

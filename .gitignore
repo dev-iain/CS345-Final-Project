@@ -8,3 +8,4 @@ requirements.txt
 *.pyc
 .vscode/
 .ipynb_checkpoints
+moreofmyownstuff.py
